@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SGPI → CGPI → Percentage & Grade Calculator (MU)</title>
+<style>
+  :root {
+  --bg: #0f1220;
+  --card: #171a2b;
+  --muted: #9aa3b2;
+  --text: #e9eef7;
+  --accent: #7c5cff;
+  --accent-2: #21d4fd;
+  --ok: #2ecc71;
+  --warn: #f39c12;
+  --err: #ff6b6b;
+  --shadow: 0 20px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
+  --radius: 18px;
+  }
+  
+  /* Reset + Base */
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+  font-family: system-ui, Segoe UI, Roboto, Arial;
+  color: var(--text);
+  background:
+  radial-gradient(1200px 700px at -10% -20%, rgba(124,92,255,.20), transparent 60%),
+  radial-gradient(1000px 700px at 110% 120%, rgba(33,212,253,.18), transparent 55%),
+  var(--bg);
+  }
+  
+  /* Layout */
+  .wrap {
+  max-width: 1100px;
+  margin: 32px auto;
+  padding: 0 16px 40px;
+  }
+  
+  header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 22px;
+  }
+  
+  h1 {
+  font-size: clamp(22px, 2.4vw, 30px);
+  margin: 0;
+  letter-spacing: .2px;
+  }
+  
+  .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255,255,255,.08);
+  color: var(--muted);
+  border-radius: 999px;
+  background: rgba(255,255,255,.03);
+  backdrop-filter: blur(8px);
+  }
+  
+  .grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(12, 1fr);
+  }
+  
+  /* Card */
+  .card {
+  grid-column: span 12;
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)), var(--card);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px;
+  }
+  @media(min-width:900px) {
+  .card.span-7 { grid-column: span 7; }
+  .card.span-5 { grid-column: span 5; }
+  }
+  .card h2 {
+  margin: 4px 0 14px;
+  font-size: 20px;
+  }
+  
+  /* Form + Input */
+  label { display: block; font-weight: 600; margin: 10px 0 6px; }
+  
+  .row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  }
+  
+  input[type="number"] {
+  width: 100%;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(10,12,22,.6);
+  color: var(--text);
+  outline: none;
+  }
+  input[type="number"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(124,92,255,.15);
+  }
+  
+  /* Buttons */
+  .btn {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  padding: 10px 14px;
+  border-radius: 14px;
+  color: white;
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  box-shadow: 0 10px 24px rgba(124,92,255,.35), 0 4px 12px rgba(33,212,253,.20);
+  }
+  .btn:hover {
+  opacity: 0.9;
+  }
+  .btn.ghost {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.14);
+  color: var(--text);
+  box-shadow: none;
+  }
+  
+  /* Result */
+  .result {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(34,38,62,.7);
+  border: 1px solid rgba(255,255,255,.08);
+  }
+  .result h3 { margin: 0 0 10px; font-size: 18px; }
+  
+  .kpi {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 12px;
+  margin-top: 8px;
+  }
+  .tile {
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.10);
+  padding: 12px 14px;
+  background: rgba(255,255,255,.03);
+  }
+  .tile .label { color: var(--muted); font-size: 12px; }
+  .tile .value { font-size: 22px; font-weight: 800; margin-top: 2px; }
+  .note { color: var(--muted); font-size: 13px; margin-top: 10px; }
+  
+  /* Semester Input Row */
+  .sem-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  }
+  .sem-row input { flex: 1; }
+  
+  .grade-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 14px;
+  text-align: center;
+  }
+  
+  .grade-table th, .grade-table td {
+  border: 1px solid rgba(255,255,255,.2);
+  padding: 10px;
+  }
+  
+  .grade-table th {
+  background: rgba(255,255,255,.1);
+  font-weight: 600;
+  }
+  
+  @media (max-width: 700px) {
+  .grade-table {
+  font-size: 12px;   /* smaller font for mobile */
+  }
+  .grade-table th, .grade-table td {
+  padding: 6px;
+  }
+  }
+  
+  /* Highlighted row style */
+  .grade-table tr.highlight {
+  background: rgba(124,92,255,0.25); /* purple glow */
+  font-weight: bold;
+  transition: background 0.4s ease;
+  }
+ 
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>SGPI → CGPI → % → Grade Calculator</h1>
+    <span class="pill">Mumbai University • Ten-Point Scale</span>
+  </header>
+
+  <div class="grid">
+    <!-- SGPI to CGPI -->
+    <section class="card span-12" id="sgpiCard">
+      <h2>Enter Semester SGPI & Credits</h2>
+      <div id="semesters"></div><br>
+      <button class="btn" id="addSem">+ Add Semester</button>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="btnCalcCGPI">Calculate CGPI & Result</button>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--muted)">
+          <input type="checkbox" id="ceilToggle" checked /> Round up %
+        </label>
+      </div>
+      <div class="result" id="cgpiResult" style="display:none">
+        <h3>Result</h3>
+        <div class="kpi">
+          <div class="tile"><div class="label">CGPI</div><div class="value" id="cgpiOut">—</div></div>
+          <div class="tile"><div class="label">Percentage</div><div class="value" id="pctOut">—</div></div>
+        </div>
+        <div class="kpi" style="margin-top:12px">
+          <div class="tile"><div class="label">Grade</div><div class="value" id="gradeOut">—</div></div>
+          <div class="tile"><div class="label">Grade Point</div><div class="value" id="gpOut">—</div></div>
+        </div>
+        <div class="note" id="explainOut"></div>
+      </div>
+    </section>
+
+    <!-- Official Table -->
+    <section class="card span-12">  
+    <h2>Official MU Grade Mapping</h2>    
+    <div class="table-container">
+    <table class="grade-table">    
+    <thead>
+    <tr>    
+    <th>Marks %</th>
+    <th>Letter Grade</th>
+    <th>Grade Point</th>
+    </tr>
+    </thead>    
+    <tbody>    
+    <tr><td>80 & above</td><td>O</td><td>10</td></tr>    
+    <tr><td>75–79.99</td><td>A</td><td>9</td></tr>    
+    <tr><td>70–74.99</td><td>B</td><td>8</td></tr>    
+    <tr><td>60–69.99</td><td>C</td><td>7</td></tr>    
+    <tr><td>50–59.99</td><td>D</td><td>6</td></tr>    
+    <tr><td>45–49.99</td><td>E</td><td>5</td></tr>    
+    <tr><td>40–44.99</td><td>P</td><td>4</td></tr>    
+    <tr><td>&lt;40</td><td>F</td><td>0</td></tr>    
+    </tbody>    
+    </table>
+    </div>
+    </section>
+  </div>
+
+  <div class="footer">Built for MU circular (Exam Engg 720 of 2015)</div>
+</div>
+
+<script>
+let semCount=0;
+function addSemester(sgpi='',cred=''){
+  semCount++;
+  const div=document.createElement('div');
+  div.className='sem-row';
+  div.innerHTML=`<input type="number" min="0" max="10" step="0.01" placeholder="SGPI" value="${sgpi}">
+                 <input type="number" min="1" step="1" placeholder="Credits" value="${cred}">
+                 <button class="btn ghost" onclick="this.parentNode.remove()">✕</button>`;
+  document.getElementById('semesters').appendChild(div);
+}
+document.getElementById('addSem').onclick=()=>addSemester();
+
+// initial two semesters
+addSemester(); 
+
+function calcPercentageFromCGPI(cgpi){
+  const raw=(cgpi<7)?(7.1*cgpi+12):(7.4*cgpi+12);
+  const formula=(cgpi<7)?'7.1×CGPI+12':'7.4×CGPI+12';
+  return {raw,formula};
+}
+function gradeFromPercent(p){
+  if(p>=80) return {g:'O',gp:10};
+  if(p>=75) return {g:'A',gp:9};
+  if(p>=70) return {g:'B',gp:8};
+  if(p>=60) return {g:'C',gp:7};
+  if(p>=50) return {g:'D',gp:6};
+  if(p>=45) return {g:'E',gp:5};
+  if(p>=40) return {g:'P',gp:4};
+  return {g:'F',gp:0};
+}
+
+document.getElementById('btnCalcCGPI').onclick=()=>{
+  const rows=document.querySelectorAll('#semesters .sem-row');
+  let totCred=0, sum=0;
+  rows.forEach(r=>{
+    const sgpi=parseFloat(r.children[0].value);
+    const cred=parseFloat(r.children[1].value);
+    if(!isNaN(sgpi)&&!isNaN(cred)){ sum+=sgpi*cred; totCred+=cred; }
+  });
+  if(totCred===0){alert("Enter valid SGPI & Credits");return;}
+  const cgpi=sum/totCred;
+  const {raw,formula}=calcPercentageFromCGPI(cgpi);
+  const ceilOn=document.getElementById('ceilToggle').checked;
+  const pct=ceilOn?Math.ceil(raw):raw;
+  const {g,gp}=gradeFromPercent(pct);
+
+  document.getElementById('cgpiOut').textContent=cgpi.toFixed(2);
+  document.getElementById('pctOut').textContent=pct.toFixed(ceilOn?0:2)+" %";
+  document.getElementById('gradeOut').textContent=g;
+  document.getElementById('gpOut').textContent=gp;
+  document.getElementById('explainOut').innerHTML=`Formula: <b>${formula}</b>, Raw % = ${raw.toFixed(2)} ${ceilOn?`→ Rounded = ${pct}`:''}`;
+  document.getElementById('cgpiResult').style.display='';
+};
+
+document.getElementById('btnCalcCGPI').onclick=()=>{
+
+  // Messages per grade (English)
+  const gradeMessages = {
+  "O": "Outstanding! 🚀 You have excellent chances for top job offers!",
+  "A": "Excellent 🔥 Keep it up, you can be among the toppers next semester!",
+  "B": "Very Good 👍 Stay consistent, you can push higher next semester.",
+  "C": "Good 🙂 With a bit more effort, better opportunities will open.",
+  "D": "Average 😅 Improve your performance to boost job prospects.",
+  "E": "Below Average 🤔 Focus more in the next semester to improve.",
+  "P": "Pass 🫡 Just cleared. Work harder to secure your future.",
+  "F": "Fail 💔 This can affect job opportunities, but don’t worry — you can recover next semester."
+  };
+  
+  function highlightGradeRow(grade){
+  // reset all highlights
+  document.querySelectorAll(".grade-table tbody tr").forEach(tr=>{
+  tr.style.background="";
+  tr.style.color="";
+  tr.onclick=null;
+  });
+  
+  const colors={
+  "O":"#4CAF50",
+  "A":"#2196F3",
+  "B":"#9C27B0",
+  "C":"#FF9800",
+  "D":"#795548",
+  "E":"#FF5722",
+  "P":"#607D8B",
+  "F":"#f44336"
+  };
+  
+  document.querySelectorAll(".grade-table tbody tr").forEach(r=>{
+  if(r.children[1].textContent.trim()===grade){
+  r.style.background=colors[grade] || "rgba(255,255,255,0.15)";
+  r.style.color="white";
+  r.onclick=()=>alert(gradeMessages[grade] || "No message available.");
+  }
+  });
+  }
+ 
+  const rows=document.querySelectorAll('#semesters .sem-row');
+  let totCred=0, sum=0;
+  rows.forEach(r=>{
+  const sgpi=parseFloat(r.children[0].value);
+  const cred=parseFloat(r.children[1].value);
+  if(!isNaN(sgpi)&&!isNaN(cred)){ sum+=sgpi*cred; totCred+=cred; }
+  });
+  
+  if(totCred===0){alert("Enter valid SGPI & Credits");return;}
+  
+  const cgpi=sum/totCred;
+  const {raw,formula}=calcPercentageFromCGPI(cgpi);
+  const ceilOn=document.getElementById('ceilToggle').checked;
+  const pct=ceilOn?Math.ceil(raw):raw;
+  const {g,gp}=gradeFromPercent(pct);
+  
+  document.getElementById('cgpiOut').textContent=cgpi.toFixed(2);
+  document.getElementById('pctOut').textContent=pct.toFixed(ceilOn?0:2)+" %";
+  document.getElementById('gradeOut').textContent=g;
+  document.getElementById('gpOut').textContent=gp;
+  document.getElementById('explainOut').innerHTML=`Formula: <b>${formula}</b>, Raw % = ${raw.toFixed(2)} ${ceilOn?`→ Rounded = ${pct}`:''}`;
+  document.getElementById('cgpiResult').style.display='';
+  
+  // highlight row
+  highlightGradeRow(g);
+};
+</script>
+</body>
+</html>
