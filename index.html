@@ -419,6 +419,27 @@ document.getElementById('btnCalcCGPI').onclick=()=>{
   // highlight row
   highlightGradeRow(g);
 };
+
+  document.addEventListener("contextmenu", function(e){
+    e.preventDefault();
+    alert("Right click disabled!");
+  });
+  
+  document.onkeydown = function(e) {
+    if (e.ctrlKey && (e.key === "u" || e.key === "U")) {
+      alert("View Source disabled!");
+      return false;
+    }
+    if (e.keyCode == 123) { // F12
+      alert("Developer Tools disabled!");
+      return false;
+    }
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 73) { // Ctrl+Shift+I
+      alert("DevTools disabled!");
+      return false;
+    }
+  };
+  
 </script>
 </body>
 </html>
