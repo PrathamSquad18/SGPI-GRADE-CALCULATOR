@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://sgpi-cgpi-percentqge-grade-calculator.netlify.app/sitemap.xml
